@@ -1,0 +1,40 @@
+name: Daily Standup
+
+on:
+  schedule:
+    # 10 AM Pacific Time (UTC-7 or UTC-8)
+    - cron: "0 17 * * 1-5" # 17:00 UTC = 10:00 PT during DST
+    - cron: "0 18 * * 1-5" # 18:00 UTC = 10:00 PT during standard time
+
+jobs:
+  standup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run standup service
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 1800 # 30 minutes
+          command: npm run start
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
