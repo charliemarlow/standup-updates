@@ -8,11 +8,9 @@ const run = async (): Promise<void> => {
     const logs = await fetchLogs();
 
     console.log("Generating standup message...");
-    console.log(logs);
     const standupMessage = await generateStandupMessage(logs);
 
     console.log("Posting message to Slack...");
-    console.log(standupMessage);
     await postMessage(standupMessage);
 
     console.log("Standup message posted successfully!");
