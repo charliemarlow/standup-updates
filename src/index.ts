@@ -2,7 +2,7 @@ import { postMessage } from "./slack";
 import { generateStandupMessage } from "./llm";
 import { fetchLogs } from "./notion";
 
-const run = async (): Promise<void> => {
+const run = async () => {
   console.log("Fetching logs from Notion...");
   const logs = await fetchLogs();
 
