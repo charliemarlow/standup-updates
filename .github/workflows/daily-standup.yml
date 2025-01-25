@@ -2,8 +2,8 @@ name: Daily Standup
 
 on:
   schedule:
-    # 10 AM Pacific Time (UTC-7 or UTC-8)
-    - cron: "0 17 * * 1-5" # 17:00 UTC = 10:00 PT during DST
+    # 10 AM Pacific Time
+    # TODO: handle DST better
     - cron: "0 18 * * 1-5" # 18:00 UTC = 10:00 PT during standard time
   workflow_dispatch:
 
