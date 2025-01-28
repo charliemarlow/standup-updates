@@ -7,6 +7,7 @@ type Config = {
   notionDatabaseId: string;
   slackToken: string;
   slackChannel: string;
+  slackUser: string;
   anthropicApiKey: string;
 };
 
@@ -26,6 +27,7 @@ export const config: Config = {
   ),
   slackToken: assertIsString("SLACK_TOKEN", process.env.SLACK_TOKEN),
   slackChannel: assertIsString("SLACK_CHANNEL", process.env.SLACK_CHANNEL),
+  slackUser: assertIsString("SLACK_USER", process.env.SLACK_USER),
   anthropicApiKey: assertIsString(
     "ANTHROPIC_API_KEY",
     process.env.ANTHROPIC_API_KEY
