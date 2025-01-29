@@ -19,6 +19,7 @@ export const generateStandupMessage = async (logs: NotionLogs) => {
   Use Linear numbers for referencing tasks, but also a short summary based on the title.
   Make it sound like a human software engineer wrote it.
   Wrap the PR references and Linear references in Slack links.
+  Always list all of the completed code reviews and their count.
 
   Today's logs: ${JSON.stringify(logs.today)}
   ${logs.previous && `Previous logs: ${JSON.stringify(logs.previous)}`}`;
