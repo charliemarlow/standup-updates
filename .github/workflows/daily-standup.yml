@@ -1,41 +1,64 @@
 name: Daily Standup
-
 on:
   schedule:
-    # 10 AM Pacific Time
-    # TODO: handle DST better
-    - cron: "0 17 * * 1-5" # 17:00 UTC = 9:00 PT during standard time
+    # Main run at 9 AM Pacific Time
+    - cron: "0 17 * * 1-5"
+    # Retry runs
+    - cron: "15 17 * * 1-5"
+    - cron: "30 17 * * 1-5"
+    - cron: "45 17 * * 1-5"
+    - cron: "0 18 * * 1-5"
   workflow_dispatch:
 
 jobs:
+  check-completion:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+    steps:
+      - name: Check if already completed today
+        id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Get timestamp from 6 hours ago
+            const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
+            
+            // Search for successful runs in the last 6 hours
+            const { data: runs } = await github.rest.actions.listWorkflowRuns({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: context.workflow,
+              status: 'success',
+              created: `>${sixHoursAgo}`
+            });
+            
+            // If we find a successful run from today, we should not run
+            const shouldRun = runs.total_count === 0;
+            console.log(`Found ${runs.total_count} successful runs today. Should run: ${shouldRun}`);
+            core.setOutput('should_run', shouldRun);
+
   standup:
+    needs: check-completion
+    if: needs.check-completion.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 3
     permissions:
       contents: read
-
+    
     steps:
       - uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
-
       - name: Install dependencies
         run: npm ci
-
       - name: Build application
         run: npm run build
-
       - name: Run standup service
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 10
-          max_attempts: 8 # keep running until I create a new log for today
-          retry_wait_seconds: 900 # 15 minutes
-          command: npm run start
+        run: npm run start
         env:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
