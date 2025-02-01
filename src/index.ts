@@ -1,8 +1,16 @@
-import { postMessage } from "./slack";
+import { hasRecentMessage, postMessage } from "./slack";
 import { generateStandupMessage } from "./llm";
 import { fetchLogs } from "./notion";
 
 const run = async () => {
+  console.log("Checking if a recent standup message exists...");
+  const hasRecent = await hasRecentMessage();
+
+  if (hasRecent) {
+    console.log("Recent standup message found, skipping standup creation.");
+    return;
+  }
+
   console.log("Fetching logs from Notion...");
   const logs = await fetchLogs();
 
