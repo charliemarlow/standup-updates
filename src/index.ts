@@ -2,33 +2,49 @@ import { hasRecentMessage, postMessage } from "./slack";
 import { generateStandupMessage } from "./llm";
 import { fetchLogs } from "./notion";
 
+const log = (
+  message: string,
+  level: "info" | "error" = "info",
+  error?: Error
+) => {
+  const timestamp = new Date().toISOString();
+  const prefix = level === "error" ? "❌" : "📝";
+  const formattedMessage = `${prefix} [${timestamp}] ${message}`;
+
+  if (level === "error") {
+    console.error(formattedMessage, {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+  } else {
+    console.log(formattedMessage);
+  }
+};
+
 const run = async () => {
-  console.log("Checking if a recent standup message exists...");
+  log("Checking for recent standup message");
   const hasRecent = await hasRecentMessage();
 
   if (hasRecent) {
-    console.log("Recent standup message found, skipping standup creation.");
+    log("Recent standup message found, skipping standup creation.");
     return;
   }
 
-  console.log("Fetching logs from Notion...");
+  log("No recent standup message found, fetching logs");
   const logs = await fetchLogs();
 
-  console.log("Generating standup message...");
+  log("Generating standup message");
   const standupMessage = await generateStandupMessage(logs);
 
-  console.log("Posting message to Slack...");
+  log("Posting message to Slack");
   await postMessage(standupMessage);
 
-  console.log("Standup message posted successfully!");
+  log("Standup message posted successfully!");
 };
 
 if (require.main === module) {
   run().catch((error) => {
-    console.error("Error in standup service:", {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-    });
+    log("Error in standup service", "error", error);
     process.exit(1);
   });
 }
