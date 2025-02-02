@@ -27,6 +27,9 @@ const FOUR_HOURS_IN_MS = 4 * 60 * 60 * 1000;
 const hasXReaction = (message: MessageElement) =>
   message.reactions?.some((reaction) => reaction.name === "x");
 
+const isSuccessfulStandupUpdate = (message: MessageElement) =>
+  !message.subtype && message.user === config.botUser && !hasXReaction(message);
+
 export const hasRecentMessage = async (): Promise<boolean> => {
   const fourHoursAgo = new Date(Date.now() - FOUR_HOURS_IN_MS);
   const history = await slack.conversations.history({
@@ -38,13 +41,5 @@ export const hasRecentMessage = async (): Promise<boolean> => {
     return false;
   }
 
-  return history.messages.some((message) => {
-    // ignore channel joins and other non-user messages
-    const isNormalMessage = !message.subtype;
-    return (
-      isNormalMessage &&
-      message.user === config.botUser &&
-      !hasXReaction(message)
-    );
-  });
+  return history.messages.some((message) => isSuccessfulStandupUpdate(message));
 };
