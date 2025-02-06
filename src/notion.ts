@@ -132,8 +132,15 @@ export const fetchLogs = async (): Promise<NotionLogs> => {
   }
 
   const previousLogs = response.results[1];
-  return {
-    today: await getPageContent(todayLogs.id),
-    previous: previousLogs ? await getPageContent(previousLogs.id) : null,
-  };
+  const todayContent = await getPageContent(todayLogs.id);
+
+  const readyToPost = todayContent.includes("[x] Post update");
+  if (!readyToPost) {
+    throw new Error("Today's logs are not ready to post");
+  }
+
+  const previousContent = previousLogs
+    ? await getPageContent(previousLogs.id)
+    : null;
+  return { today: todayContent, previous: previousContent };
 };

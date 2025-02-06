@@ -28,7 +28,7 @@ const hasXReaction = (message: MessageElement) =>
   message.reactions?.some((reaction) => reaction.name === "x");
 
 const isSuccessfulStandupUpdate = (message: MessageElement) =>
-  !message.subtype && message.user === config.botUser && !hasXReaction(message);
+  !message.subtype && message.user === config.botUser;
 
 export const hasRecentMessage = async (): Promise<boolean> => {
   const fourHoursAgo = new Date(Date.now() - FOUR_HOURS_IN_MS);
@@ -41,5 +41,25 @@ export const hasRecentMessage = async (): Promise<boolean> => {
     return false;
   }
 
-  return history.messages.some((message) => isSuccessfulStandupUpdate(message));
+  const messagesWithX = history.messages.filter(
+    (message) => message.ts && hasXReaction(message)
+  ) as (MessageElement & { ts: string })[];
+  const deletePromises = messagesWithX.map((message) =>
+    slack.chat
+      .delete({
+        channel: config.slackChannel,
+        ts: message.ts,
+      })
+      .catch((error) => console.error("Failed to delete message:", error))
+  );
+
+  await Promise.all(deletePromises);
+
+  // Filter out the messages we just deleted before checking for successful updates
+  const remainingMessages = history.messages.filter(
+    (message) => !hasXReaction(message)
+  );
+  return remainingMessages.some((message) =>
+    isSuccessfulStandupUpdate(message)
+  );
 };

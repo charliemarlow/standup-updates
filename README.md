@@ -19,11 +19,10 @@ This script reads from that database, uses an LLM to summarize, and then posts t
   - "Remind me...", the message will end with a list of reminders
 - Posts the summary to a Slack channel
   - Tags me in the thread, I'll get notified if anyone follows up
- 
+
 ## Planned improvements
 
-- Don't post if Slack catchup isn't checked yet
-- Delete messages with an X reaction
+- None! This is working well for me right now.
 
 ## Future improvements (ideas)
 
