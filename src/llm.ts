@@ -16,6 +16,7 @@ export const generateStandupMessage = async (logs: NotionLogs) => {
   • Wrap the PR references and Linear references in Slack links.
   • Always list all of the completed code reviews and their count.
   • If there are no code reviews, omit that section.
+  • Don't include an emoji at the end unless the user requests it.
   • Follow any instructions on a line after LLM. That's a message for you, obey it.
     • Append reminders at the end, otherwise omit that section.
   
